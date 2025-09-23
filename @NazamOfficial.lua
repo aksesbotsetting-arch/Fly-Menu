@@ -49,29 +49,6 @@ closebutton.TextColor3 = Color3.fromRGB(255,255,255)
 closebutton.TextSize = 20
 closebutton.Position = UDim2.new(1, -35, 0, 0)
 
--- Minimize
-mini.Name = "minimize"
-mini.Parent = Frame
-mini.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-mini.Font = Enum.Font.SourceSansBold
-mini.Size = UDim2.new(0, 30, 0, 30)
-mini.Text = "-"
-mini.TextColor3 = Color3.fromRGB(255,255,255)
-mini.TextSize = 22
-mini.Position = UDim2.new(1, -70, 0, 0)
-
--- Restore button
-mini2.Name = "minimize2"
-mini2.Parent = Frame
-mini2.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-mini2.Font = Enum.Font.SourceSansBold
-mini2.Size = UDim2.new(0, 30, 0, 30)
-mini2.Text = "+"
-mini2.TextColor3 = Color3.fromRGB(255,255,255)
-mini2.TextSize = 22
-mini2.Position = UDim2.new(1, -70, 0, 0)
-mini2.Visible = false
-
 -- Tombol naik
 up.Name = "up"
 up.Parent = Frame
@@ -462,35 +439,34 @@ mine.MouseButton1Down:connect(function()
 	end
 end)
 
--- Close
+-- Tombol Fly (akan muncul setelah ditekan X)
+local FlyBtn = Instance.new("TextButton")
+FlyBtn.Name = "FlyBtn"
+FlyBtn.Parent = main
+FlyBtn.Size = UDim2.new(0, 70, 0, 70)
+FlyBtn.Position = UDim2.new(0.5, -35, 0, 20) -- tengah atas agak turun
+FlyBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+FlyBtn.Text = "Fly"
+FlyBtn.TextScaled = true
+FlyBtn.TextColor3 = Color3.new(1,1,1)
+FlyBtn.Font = Enum.Font.SourceSansBold
+FlyBtn.Visible = false
+FlyBtn.Active = true
+FlyBtn.Draggable = true
+
+-- bikin bulat
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(1, 0)
+corner.Parent = FlyBtn
+
+-- Close (ubah: hide frame, tampilkan FlyBtn)
 closebutton.MouseButton1Click:Connect(function()
-	main:Destroy()
+	Frame.Visible = false
+	FlyBtn.Visible = true
 end)
 
--- Minimize
-mini.MouseButton1Click:Connect(function()
-	up.Visible = false
-	down.Visible = false
-	onof.Visible = false
-	plus.Visible = false
-	speed.Visible = false
-	mine.Visible = false
-	mini.Visible = false
-	mini2.Visible = true
-	Frame.BackgroundTransparency = 1
-	closebutton.Position =  UDim2.new(0, 0, -1, 57)
-end)
-
--- Restore
-mini2.MouseButton1Click:Connect(function()
-	up.Visible = true
-	down.Visible = true
-	onof.Visible = true
-	plus.Visible = true
-	speed.Visible = true
-	mine.Visible = true
-	mini.Visible = true
-	mini2.Visible = false
-	Frame.BackgroundTransparency = 0 
-	closebutton.Position =  UDim2.new(0, 0, -1, 27)
+-- Klik FlyBtn untuk memunculkan kembali Frame
+FlyBtn.MouseButton1Click:Connect(function()
+	Frame.Visible = true
+	FlyBtn.Visible = false
 end)
