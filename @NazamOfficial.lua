@@ -72,8 +72,8 @@ local CloseBtn = createButton("Tutup Menu", Color3.fromRGB(180,0,0))
 
 -- Tombol kecil FLY
 local FlyIcon = Instance.new("TextButton")
-FlyIcon.Size = UDim2.new(0, 40, 0, 40) -- kecil
-FlyIcon.Position = UDim2.new(0, 20, 1, -80) -- pojok kiri bawah
+FlyIcon.Size = UDim2.new(0, 40, 0, 40)
+FlyIcon.Position = UDim2.new(0, 20, 1, -80)
 FlyIcon.BackgroundColor3 = Color3.fromRGB(0,0,0)
 FlyIcon.Text = "FLY"
 FlyIcon.TextColor3 = Color3.fromRGB(0,0,255)
@@ -143,16 +143,18 @@ local function toggleFly()
         bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
         bv.Velocity = Vector3.zero
 
+        -- loop terbang
         task.spawn(function()
             while flying and task.wait() do
                 if hum and hrp and bv and bg then
                     local cam = workspace.CurrentCamera
                     local moveDir = hum.MoveDirection
+
+                    local dir = Vector3.zero
                     if moveDir.Magnitude > 0 then
-                        bv.Velocity = (cam.CFrame.LookVector * moveDir.Z + cam.CFrame.RightVector * moveDir.X) * speed
-                    else
-                        bv.Velocity = Vector3.zero
+                        dir = (cam.CFrame.LookVector * moveDir.Z + cam.CFrame.RightVector * moveDir.X)
                     end
+                    bv.Velocity = dir * speed
                     bg.CFrame = cam.CFrame
                 end
             end
@@ -203,7 +205,6 @@ SpeedUp.MouseButton1Click:Connect(addSpeed)
 SpeedDown.MouseButton1Click:Connect(minusSpeed)
 CloseBtn.MouseButton1Click:Connect(closeGui)
 
--- Klik tombol bulat buat buka lagi
 FlyIcon.MouseButton1Click:Connect(function()
     Main.Visible = true
     FlyIcon.Visible = false
