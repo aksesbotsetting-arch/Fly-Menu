@@ -73,6 +73,50 @@ local CloseBtn = createButton("Tutup Menu", Color3.fromRGB(180,0,0))
 -- Core Variables
 local flying = false
 local speed = 1
+local bg, bv
+
+-- Tombol kecil FLY
+local FlyIcon = Instance.new("TextButton")
+FlyIcon.Size = UDim2.new(0, 40, 0, 40) -- kecil
+FlyIcon.Position = UDim2.new(0, 20, 1, -80) -- pojok kiri bawah
+FlyIcon.BackgroundColor3 = Color3.fromRGB(0,0,0)
+FlyIcon.Text = "FLY"
+FlyIcon.TextColor3 = Color3.fromRGB(0,0,255)
+FlyIcon.Font = Enum.Font.GothamBold
+FlyIcon.TextSize = 14
+FlyIcon.Visible = false
+FlyIcon.Parent = gui
+local IconCorner = Instance.new("UICorner", FlyIcon)
+IconCorner.CornerRadius = UDim.new(1,0) -- bulat penuh
+
+-- Biar tombol kecil bisa digeser
+local dragging, dragInput, dragStart, startPos
+FlyIcon.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = FlyIcon.Position
+
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+FlyIcon.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+		dragInput = input
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if input == dragInput and dragging then
+		local delta = input.Position - dragStart
+		FlyIcon.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	end
+end)
 
 -- Functions
 local function updateTitle()
@@ -82,35 +126,50 @@ end
 local function toggleFly()
     chr = player.Character
     hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
-    if not hum then return end
+    local hrp = chr and chr:FindFirstChild("HumanoidRootPart")
+    if not hum or not hrp then return end
 
     flying = not flying
     if flying then
         FlyBtn.Text = "Terbang: ON"
         FlyBtn.BackgroundColor3 = Color3.fromRGB(0,180,0)
-        hum:ChangeState(Enum.HumanoidStateType.Physics)
+
+        bg = Instance.new("BodyGyro", hrp)
+        bg.P = 9e4
+        bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+        bg.CFrame = hrp.CFrame
+
+        bv = Instance.new("BodyVelocity", hrp)
+        bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+        bv.Velocity = Vector3.zero
+
         task.spawn(function()
             while flying and task.wait() do
-                if hum.MoveDirection.Magnitude > 0 then
-                    chr:TranslateBy(hum.MoveDirection * speed)
+                if hum and hrp and bv and bg then
+                    local dir = hum.MoveDirection
+                    bv.Velocity = dir * speed
+                    bg.CFrame = workspace.CurrentCamera.CFrame
                 end
             end
         end)
+
     else
         FlyBtn.Text = "Terbang: OFF"
         FlyBtn.BackgroundColor3 = Color3.fromRGB(0,120,215)
+        if bg then bg:Destroy() bg = nil end
+        if bv then bv:Destroy() bv = nil end
     end
 end
 
 local function goUp()
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        player.Character.HumanoidRootPart.CFrame *= CFrame.new(0,2,0)
+    if flying and bv then
+        bv.Velocity = bv.Velocity + Vector3.new(0, speed, 0)
     end
 end
 
 local function goDown()
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        player.Character.HumanoidRootPart.CFrame *= CFrame.new(0,-2,0)
+    if flying and bv then
+        bv.Velocity = bv.Velocity + Vector3.new(0, -speed, 0)
     end
 end
 
@@ -127,7 +186,8 @@ local function minusSpeed()
 end
 
 local function closeGui()
-    gui:Destroy()
+    Main.Visible = false
+    FlyIcon.Visible = true
 end
 
 -- Connect Buttons
@@ -138,6 +198,12 @@ SpeedUp.MouseButton1Click:Connect(addSpeed)
 SpeedDown.MouseButton1Click:Connect(minusSpeed)
 CloseBtn.MouseButton1Click:Connect(closeGui)
 
+-- Klik tombol bulat buat buka lagi
+FlyIcon.MouseButton1Click:Connect(function()
+    Main.Visible = true
+    FlyIcon.Visible = false
+end)
+
 -- Shortcut untuk hide/show
 local visible = true
 UserInputService.InputBegan:Connect(function(input,gpe)
@@ -146,3 +212,5 @@ UserInputService.InputBegan:Connect(function(input,gpe)
         Main.Visible = visible
     end
 end)
+
+updateTitle()
