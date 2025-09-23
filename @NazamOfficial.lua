@@ -20,11 +20,9 @@ Main.BorderSizePixel = 0
 Main.Active = true
 Main.Draggable = true
 Main.Parent = gui
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 10)
 
-local UICorner = Instance.new("UICorner", Main)
-UICorner.CornerRadius = UDim.new(0, 10)
-
--- Title Bar
+-- Title
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 40)
 Title.BackgroundColor3 = Color3.fromRGB(120, 0, 200)
@@ -34,10 +32,9 @@ Title.Font = Enum.Font.GothamBold
 Title.TextSize = 16
 Title.BorderSizePixel = 0
 Title.Parent = Main
-local UICorner2 = Instance.new("UICorner", Title)
-UICorner2.CornerRadius = UDim.new(0,10)
+Instance.new("UICorner", Title).CornerRadius = UDim.new(0,10)
 
--- Container untuk tombol
+-- Holder
 local Holder = Instance.new("Frame")
 Holder.Size = UDim2.new(1, -20, 1, -60)
 Holder.Position = UDim2.new(0, 10, 0, 50)
@@ -57,8 +54,7 @@ local function createButton(text, color)
     btn.Font = Enum.Font.GothamBold
     btn.TextSize = 16
     btn.Parent = Holder
-    local round = Instance.new("UICorner", btn)
-    round.CornerRadius = UDim.new(0,8)
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,8)
     return btn
 end
 
@@ -74,11 +70,12 @@ local CloseBtn = createButton("Tutup Menu", Color3.fromRGB(180,0,0))
 local flying = false
 local speed = 1
 local bg, bv
+local yMove = 0 -- naik/turun extra
 
 -- Tombol kecil FLY
 local FlyIcon = Instance.new("TextButton")
-FlyIcon.Size = UDim2.new(0, 40, 0, 40) -- kecil
-FlyIcon.Position = UDim2.new(0, 20, 1, -80) -- pojok kiri bawah
+FlyIcon.Size = UDim2.new(0, 40, 0, 40)
+FlyIcon.Position = UDim2.new(0, 20, 1, -80)
 FlyIcon.BackgroundColor3 = Color3.fromRGB(0,0,0)
 FlyIcon.Text = "FLY"
 FlyIcon.TextColor3 = Color3.fromRGB(0,0,255)
@@ -86,17 +83,15 @@ FlyIcon.Font = Enum.Font.GothamBold
 FlyIcon.TextSize = 14
 FlyIcon.Visible = false
 FlyIcon.Parent = gui
-local IconCorner = Instance.new("UICorner", FlyIcon)
-IconCorner.CornerRadius = UDim.new(1,0) -- bulat penuh
+Instance.new("UICorner", FlyIcon).CornerRadius = UDim.new(1,0)
 
--- Biar tombol kecil bisa digeser
+-- Geser tombol kecil
 local dragging, dragInput, dragStart, startPos
 FlyIcon.InputBegan:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 		dragging = true
 		dragStart = input.Position
 		startPos = FlyIcon.Position
-
 		input.Changed:Connect(function()
 			if input.UserInputState == Enum.UserInputState.End then
 				dragging = false
@@ -104,13 +99,11 @@ FlyIcon.InputBegan:Connect(function(input)
 		end)
 	end
 end)
-
 FlyIcon.InputChanged:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
 		dragInput = input
 	end
 end)
-
 UserInputService.InputChanged:Connect(function(input)
 	if input == dragInput and dragging then
 		local delta = input.Position - dragStart
@@ -146,9 +139,11 @@ local function toggleFly()
         task.spawn(function()
             while flying and task.wait() do
                 if hum and hrp and bv and bg then
-                    local dir = hum.MoveDirection
-                    bv.Velocity = dir * speed
-                    bg.CFrame = workspace.CurrentCamera.CFrame
+                    local cam = workspace.CurrentCamera
+                    local moveDir = (cam.CFrame.LookVector * hum.MoveDirection.Z) + (cam.CFrame.RightVector * hum.MoveDirection.X)
+                    local finalVel = moveDir * speed + Vector3.new(0, yMove, 0)
+                    bv.Velocity = finalVel
+                    bg.CFrame = cam.CFrame
                 end
             end
         end)
@@ -158,33 +153,20 @@ local function toggleFly()
         FlyBtn.BackgroundColor3 = Color3.fromRGB(0,120,215)
         if bg then bg:Destroy() bg = nil end
         if bv then bv:Destroy() bv = nil end
+        yMove = 0
     end
 end
 
-local function goUp()
-    if flying and bv then
-        bv.Velocity = bv.Velocity + Vector3.new(0, speed, 0)
-    end
-end
+-- Naik / Turun
+local function goUp() if flying then yMove = speed end end
+local function goDown() if flying then yMove = -speed end end
+local function stopY() yMove = 0 end
 
-local function goDown()
-    if flying and bv then
-        bv.Velocity = bv.Velocity + Vector3.new(0, -speed, 0)
-    end
-end
+-- Speed
+local function addSpeed() speed += 1 updateTitle() end
+local function minusSpeed() if speed > 1 then speed -= 1 updateTitle() end end
 
-local function addSpeed()
-    speed += 1
-    updateTitle()
-end
-
-local function minusSpeed()
-    if speed > 1 then
-        speed -= 1
-        updateTitle()
-    end
-end
-
+-- Tutup GUI
 local function closeGui()
     Main.Visible = false
     FlyIcon.Visible = true
@@ -192,19 +174,21 @@ end
 
 -- Connect Buttons
 FlyBtn.MouseButton1Click:Connect(toggleFly)
-UpBtn.MouseButton1Click:Connect(goUp)
-DownBtn.MouseButton1Click:Connect(goDown)
 SpeedUp.MouseButton1Click:Connect(addSpeed)
 SpeedDown.MouseButton1Click:Connect(minusSpeed)
 CloseBtn.MouseButton1Click:Connect(closeGui)
-
--- Klik tombol bulat buat buka lagi
 FlyIcon.MouseButton1Click:Connect(function()
     Main.Visible = true
     FlyIcon.Visible = false
 end)
 
--- Shortcut untuk hide/show
+-- Naik/Turun tahan
+UpBtn.MouseButton1Down:Connect(goUp)
+UpBtn.MouseButton1Up:Connect(stopY)
+DownBtn.MouseButton1Down:Connect(goDown)
+DownBtn.MouseButton1Up:Connect(stopY)
+
+-- Shortcut keyboard
 local visible = true
 UserInputService.InputBegan:Connect(function(input,gpe)
     if not gpe and input.KeyCode == Enum.KeyCode.RightControl then
