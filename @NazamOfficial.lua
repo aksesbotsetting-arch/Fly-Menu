@@ -127,9 +127,9 @@ local tpwalking = false
 
 -- Notification (sama seperti sebelumnya)
 game:GetService("StarterGui"):SetCore("SendNotification", { 
-	Title = "TERBANG ID";
-	Text = "DIBUAT YOUTUBE @FarhanSASI";
-	Icon = "rbxthumb://type=Asset&id=102120801537546&w=150&h=150"})
+	Title = "Type | Fly";
+	Text = "Developer TikTok : NazamOffcial1";
+	Icon = "rbxthumb://type=Asset&id=109307269006494&w=150&h=150"})
 Duration = 5;
 
 -- Keep draggable/active
