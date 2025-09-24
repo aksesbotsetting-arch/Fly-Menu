@@ -443,7 +443,7 @@ end)
 local FlyBtn = Instance.new("TextButton")
 FlyBtn.Name = "FlyBtn"
 FlyBtn.Parent = main
-FlyBtn.Size = UDim2.new(0, 45, 0, 45)
+FlyBtn.Size = UDim2.new(0, 100, 0, 40)
 FlyBtn.Position = UDim2.new(0.5, -35, 0, 20) -- tengah atas agak turun
 FlyBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 FlyBtn.Text = "Fly"
@@ -456,7 +456,7 @@ FlyBtn.Draggable = true
 
 -- bikin bulat
 local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(1, 0)
+corner.CornerRadius = UDim.new(0.2, 0)
 corner.Parent = FlyBtn
 
 -- Close (ubah: hide frame, tampilkan FlyBtn)
