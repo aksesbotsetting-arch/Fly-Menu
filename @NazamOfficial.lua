@@ -3,7 +3,6 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
-local UIS = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
 -- Wait for character
@@ -14,13 +13,10 @@ local Humanoid = Character:WaitForChild("Humanoid")
 -- Variables
 local NoClipEnabled = false
 local FlyEnabled = false
-local FlySpeed = 1
+local speeds = 1
+local nowe = false
+local tpwalking = false
 local Connections = {}
-local ctrl = {f = 0, b = 0, l = 0, r = 0}
-local lastctrl = {f = 0, b = 0, l = 0, r = 0}
-local maxspeed = 50
-local speed = 0
-local bg, bv
 
 -- Create ScreenGui
 local ScreenGui = Instance.new("ScreenGui")
@@ -32,8 +28,8 @@ ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 -- Main Frame
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 320, 0, 280)
-MainFrame.Position = UDim2.new(0.5, -160, 0.5, -140)
+MainFrame.Size = UDim2.new(0, 340, 0, 360)
+MainFrame.Position = UDim2.new(0.5, -170, 0.5, -180)
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
@@ -175,7 +171,7 @@ end
 local function CreateButton(name, text, icon, position, parent)
     local buttonFrame = Instance.new("Frame")
     buttonFrame.Name = name.."Frame"
-    buttonFrame.Size = UDim2.new(1, -30, 0, 70)
+    buttonFrame.Size = UDim2.new(1, -30, 0, 55)
     buttonFrame.Position = position
     buttonFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
     buttonFrame.BorderSizePixel = 0
@@ -193,22 +189,22 @@ local function CreateButton(name, text, icon, position, parent)
     
     local iconLabel = Instance.new("TextLabel")
     iconLabel.Size = UDim2.new(0, 50, 0, 50)
-    iconLabel.Position = UDim2.new(0, 10, 0.5, -25)
+    iconLabel.Position = UDim2.new(0, 5, 0.5, -25)
     iconLabel.BackgroundTransparency = 1
     iconLabel.Text = icon
     iconLabel.TextColor3 = Color3.fromRGB(0, 170, 255)
-    iconLabel.TextSize = 32
+    iconLabel.TextSize = 28
     iconLabel.Font = Enum.Font.GothamBold
     iconLabel.Parent = buttonFrame
     
     local button = Instance.new("TextButton")
     button.Name = name
-    button.Size = UDim2.new(1, -70, 1, 0)
-    button.Position = UDim2.new(0, 70, 0, 0)
+    button.Size = UDim2.new(1, -60, 1, 0)
+    button.Position = UDim2.new(0, 60, 0, 0)
     button.BackgroundTransparency = 1
     button.Text = text
     button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    button.TextSize = 18
+    button.TextSize = 16
     button.Font = Enum.Font.GothamBold
     button.TextXAlignment = Enum.TextXAlignment.Left
     button.Parent = buttonFrame
@@ -226,11 +222,13 @@ local function CreateButton(name, text, icon, position, parent)
     return button, buttonFrame, iconLabel
 end
 
--- Create Buttons
+-- Create Fly Control Buttons
 local FlyButton = CreateButton("FlyButton", "FLY: OFF", "✈️", UDim2.new(0, 15, 0, 125), MainFrame)
-local NoClipButton = CreateButton("NoClipButton", "NOCLIP: OFF", "👻", UDim2.new(0, 15, 0, 205), MainFrame)
+local UpButton = CreateButton("UpButton", "UP", "⬆️", UDim2.new(0, 15, 0, 190), MainFrame)
+local DownButton = CreateButton("DownButton", "DOWN", "⬇️", UDim2.new(0, 15, 0, 255), MainFrame)
+local NoClipButton = CreateButton("NoClipButton", "NOCLIP: OFF", "👻", UDim2.new(0, 15, 0, 320), MainFrame)
 
--- Mini Icon
+-- Mini Icon (Draggable)
 local MiniIcon = Instance.new("Frame")
 MiniIcon.Name = "MiniIcon"
 MiniIcon.Size = UDim2.new(0, 70, 0, 70)
@@ -296,7 +294,7 @@ NoClipButton.MouseButton1Click:Connect(function()
     if NoClipEnabled then
         NoClipButton.Text = "NOCLIP: ON"
         EnableNoClip()
-        ShowNotification("✓ NoClip Enabled! Walk through walls!", Color3.fromRGB(100, 255, 100))
+        ShowNotification("✓ NoClip Enabled!", Color3.fromRGB(100, 255, 100))
     else
         NoClipButton.Text = "NOCLIP: OFF"
         if Connections.NoClip then Connections.NoClip:Disconnect() end
@@ -311,123 +309,248 @@ NoClipButton.MouseButton1Click:Connect(function()
     end
 end)
 
--- Fly System
-local function EnableFly()
-    if not Character or not HumanoidRootPart then return end
+-- FLY SYSTEM (Original Logic)
+FlyButton.MouseButton1Down:Connect(function()
+    nowe = not nowe
     
-    Humanoid.PlatformStand = true
+    if nowe == false then
+        FlyButton.Text = "FLY: OFF"
+        ShowNotification("✗ Fly Disabled!", Color3.fromRGB(255, 150, 100))
+        
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Climbing, true)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, true)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Flying, true)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall, true)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp, true)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Landed, true)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics, true)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.PlatformStanding, true)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, true)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Running, true)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.RunningNoPhysics, true)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.StrafingNoPhysics, true)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming, true)
+        Character.Humanoid:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
+    else
+        FlyButton.Text = "FLY: ON"
+        ShowNotification("✓ Fly Enabled! Use UP/DOWN buttons!", Color3.fromRGB(100, 255, 100))
+        
+        for i = 1, speeds do
+            spawn(function()
+                local hb = RunService.Heartbeat
+                tpwalking = true
+                local chr = Character
+                local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
+                while tpwalking and hb:Wait() and chr and hum and hum.Parent do
+                    if hum.MoveDirection.Magnitude > 0 then
+                        chr:TranslateBy(hum.MoveDirection)
+                    end
+                end
+            end)
+        end
+        
+        Character.Animate.Disabled = true
+        local Hum = Character:FindFirstChildOfClass("Humanoid") or Character:FindFirstChildOfClass("AnimationController")
+        for i, v in next, Hum:GetPlayingAnimationTracks() do
+            v:AdjustSpeed(0)
+        end
+        
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Climbing, false)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Flying, false)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall, false)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp, false)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Landed, false)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics, false)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.PlatformStanding, false)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Running, false)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.RunningNoPhysics, false)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.StrafingNoPhysics, false)
+        Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming, false)
+        Character.Humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
+    end
     
-    bg = Instance.new("BodyGyro", HumanoidRootPart)
-    bg.P = 9e4
-    bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
-    bg.cframe = HumanoidRootPart.CFrame
-    
-    bv = Instance.new("BodyVelocity", HumanoidRootPart)
-    bv.velocity = Vector3.new(0, 0.1, 0)
-    bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
-    
-    if Connections.Fly then Connections.Fly:Disconnect() end
-    
-    Connections.Fly = RunService.RenderStepped:Connect(function()
-        if FlyEnabled and Character and HumanoidRootPart and Humanoid.Health > 0 then
+    -- BodyGyro and BodyVelocity Logic
+    if Character:FindFirstChildOfClass("Humanoid").RigType == Enum.HumanoidRigType.R6 then
+        local torso = Character.Torso
+        local flying = true
+        local deb = true
+        local ctrl = {f = 0, b = 0, l = 0, r = 0}
+        local lastctrl = {f = 0, b = 0, l = 0, r = 0}
+        local maxspeed = 50
+        local speed = 0
+        
+        local bg = Instance.new("BodyGyro", torso)
+        bg.P = 9e4
+        bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+        bg.cframe = torso.CFrame
+        local bv = Instance.new("BodyVelocity", torso)
+        bv.velocity = Vector3.new(0, 0.1, 0)
+        bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
+        
+        if nowe == true then
+            LocalPlayer.Character.Humanoid.PlatformStand = true
+        end
+        
+        while nowe == true or Character.Humanoid.Health == 0 do
+            RunService.RenderStepped:Wait()
+            
             if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
-                speed = speed + 0.5 + (speed / maxspeed)
-                if speed > maxspeed then speed = maxspeed end
+                speed = speed + .5 + (speed / maxspeed)
+                if speed > maxspeed then
+                    speed = maxspeed
+                end
             elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speed ~= 0 then
                 speed = speed - 1
-                if speed < 0 then speed = 0 end
+                if speed < 0 then
+                    speed = 0
+                end
             end
             
             if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
                 bv.velocity = ((workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f + ctrl.b)) + 
-                    ((workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l + ctrl.r, (ctrl.f + ctrl.b) * 0.2, 0).p) - 
-                    workspace.CurrentCamera.CoordinateFrame.p)) * speed * FlySpeed
+                    ((workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l + ctrl.r, (ctrl.f + ctrl.b) * .2, 0).p) - 
+                    workspace.CurrentCamera.CoordinateFrame.p)) * speed
                 lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
             elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
                 bv.velocity = ((workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f + lastctrl.b)) + 
-                    ((workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l + lastctrl.r, (lastctrl.f + lastctrl.b) * 0.2, 0).p) - 
-                    workspace.CurrentCamera.CoordinateFrame.p)) * speed * FlySpeed
+                    ((workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l + lastctrl.r, (lastctrl.f + lastctrl.b) * .2, 0).p) - 
+                    workspace.CurrentCamera.CoordinateFrame.p)) * speed
             else
                 bv.velocity = Vector3.new(0, 0, 0)
             end
             
             bg.cframe = workspace.CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((ctrl.f + ctrl.b) * 50 * speed / maxspeed), 0, 0)
         end
-    end)
-end
-
-local function DisableFly()
-    if Connections.Fly then
-        Connections.Fly:Disconnect()
-        Connections.Fly = nil
-    end
-    
-    if bg then bg:Destroy() bg = nil end
-    if bv then bv:Destroy() bv = nil end
-    
-    ctrl = {f = 0, b = 0, l = 0, r = 0}
-    lastctrl = {f = 0, b = 0, l = 0, r = 0}
-    speed = 0
-    
-    if Character and Humanoid then
-        Humanoid.PlatformStand = false
-    end
-end
-
-FlyButton.MouseButton1Click:Connect(function()
-    FlyEnabled = not FlyEnabled
-    
-    if FlyEnabled then
-        FlyButton.Text = "FLY: ON"
-        EnableFly()
-        ShowNotification("✓ Fly Enabled! Use WASD to fly!", Color3.fromRGB(100, 255, 100))
+        
+        ctrl = {f = 0, b = 0, l = 0, r = 0}
+        lastctrl = {f = 0, b = 0, l = 0, r = 0}
+        speed = 0
+        bg:Destroy()
+        bv:Destroy()
+        LocalPlayer.Character.Humanoid.PlatformStand = false
+        Character.Animate.Disabled = false
+        tpwalking = false
     else
-        FlyButton.Text = "FLY: OFF"
-        DisableFly()
-        ShowNotification("✗ Fly Disabled!", Color3.fromRGB(255, 150, 100))
+        local UpperTorso = Character.UpperTorso
+        local flying = true
+        local deb = true
+        local ctrl = {f = 0, b = 0, l = 0, r = 0}
+        local lastctrl = {f = 0, b = 0, l = 0, r = 0}
+        local maxspeed = 50
+        local speed = 0
+        
+        local bg = Instance.new("BodyGyro", UpperTorso)
+        bg.P = 9e4
+        bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+        bg.cframe = UpperTorso.CFrame
+        local bv = Instance.new("BodyVelocity", UpperTorso)
+        bv.velocity = Vector3.new(0, 0.1, 0)
+        bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
+        
+        if nowe == true then
+            LocalPlayer.Character.Humanoid.PlatformStand = true
+        end
+        
+        while nowe == true or Character.Humanoid.Health == 0 do
+            wait()
+            
+            if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
+                speed = speed + .5 + (speed / maxspeed)
+                if speed > maxspeed then
+                    speed = maxspeed
+                end
+            elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speed ~= 0 then
+                speed = speed - 1
+                if speed < 0 then
+                    speed = 0
+                end
+            end
+            
+            if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
+                bv.velocity = ((workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f + ctrl.b)) + 
+                    ((workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l + ctrl.r, (ctrl.f + ctrl.b) * .2, 0).p) - 
+                    workspace.CurrentCamera.CoordinateFrame.p)) * speed
+                lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
+            elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
+                bv.velocity = ((workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f + lastctrl.b)) + 
+                    ((workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l + lastctrl.r, (lastctrl.f + lastctrl.b) * .2, 0).p) - 
+                    workspace.CurrentCamera.CoordinateFrame.p)) * speed
+            else
+                bv.velocity = Vector3.new(0, 0, 0)
+            end
+            
+            bg.cframe = workspace.CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((ctrl.f + ctrl.b) * 50 * speed / maxspeed), 0, 0)
+        end
+        
+        ctrl = {f = 0, b = 0, l = 0, r = 0}
+        lastctrl = {f = 0, b = 0, l = 0, r = 0}
+        speed = 0
+        bg:Destroy()
+        bv:Destroy()
+        LocalPlayer.Character.Humanoid.PlatformStand = false
+        Character.Animate.Disabled = false
+        tpwalking = false
     end
 end)
 
--- Keyboard Controls for Fly
-UIS.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed or not FlyEnabled then return end
-    
-    if input.KeyCode == Enum.KeyCode.W then
-        ctrl.f = 1
-    elseif input.KeyCode == Enum.KeyCode.S then
-        ctrl.b = -1
-    elseif input.KeyCode == Enum.KeyCode.A then
-        ctrl.l = -1
-    elseif input.KeyCode == Enum.KeyCode.D then
-        ctrl.r = 1
+-- UP Button (Hold to go up)
+local tis
+UpButton.MouseButton1Down:Connect(function()
+    tis = UpButton.MouseEnter:Connect(function()
+        while tis do
+            wait()
+            if Character and HumanoidRootPart then
+                HumanoidRootPart.CFrame = HumanoidRootPart.CFrame * CFrame.new(0, 1, 0)
+            end
+        end
+    end)
+end)
+
+UpButton.MouseLeave:Connect(function()
+    if tis then
+        tis:Disconnect()
+        tis = nil
     end
 end)
 
-UIS.InputEnded:Connect(function(input, gameProcessed)
-    if not FlyEnabled then return end
-    
-    if input.KeyCode == Enum.KeyCode.W then
-        ctrl.f = 0
-    elseif input.KeyCode == Enum.KeyCode.S then
-        ctrl.b = 0
-    elseif input.KeyCode == Enum.KeyCode.A then
-        ctrl.l = 0
-    elseif input.KeyCode == Enum.KeyCode.D then
-        ctrl.r = 0
+-- DOWN Button (Hold to go down)
+local dis
+DownButton.MouseButton1Down:Connect(function()
+    dis = DownButton.MouseEnter:Connect(function()
+        while dis do
+            wait()
+            if Character and HumanoidRootPart then
+                HumanoidRootPart.CFrame = HumanoidRootPart.CFrame * CFrame.new(0, -1, 0)
+            end
+        end
+    end)
+end)
+
+DownButton.MouseLeave:Connect(function()
+    if dis then
+        dis:Disconnect()
+        dis = nil
     end
 end)
 
 -- Character Respawn Handler
 LocalPlayer.CharacterAdded:Connect(function(newCharacter)
+    wait(0.7)
     Character = newCharacter
     HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
     Humanoid = Character:WaitForChild("Humanoid")
     
-    if FlyEnabled then
-        task.wait(0.5)
-        DisableFly()
-        FlyEnabled = false
-        FlyButton.Text = "FLY: OFF"
+    if Character and Humanoid then
+        Humanoid.PlatformStand = false
+    end
+    if Character and Character:FindFirstChild("Animate") then
+        pcall(function() Character.Animate.Disabled = false end)
     end
     
     if NoClipEnabled then
@@ -439,7 +562,6 @@ end)
 -- Cleanup
 ScreenGui.AncestryChanged:Connect(function(_, parent)
     if not parent then
-        DisableFly()
         if Connections.NoClip then Connections.NoClip:Disconnect() end
         for _, connection in pairs(Connections) do
             if connection then connection:Disconnect() end
@@ -448,4 +570,4 @@ ScreenGui.AncestryChanged:Connect(function(_, parent)
 end)
 
 -- Initial Notification
-ShowNotification("Script Loaded! Press buttons to activate", Color3.fromRGB(100, 200, 255))
+ShowNotification("Script Loaded! Press FLY to start", Color3.fromRGB(100, 200, 255))
