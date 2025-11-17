@@ -333,7 +333,7 @@ MinimizeIcon.BorderSizePixel = 0
 MinimizeIcon.Active = true
 MinimizeIcon.Draggable = true
 MinimizeIcon.Visible = false
-MinimizeIcon.Image = "rbxassetid://124179055805469"
+MinimizeIcon.Image = "rbxassetid://110225912398772"
 MinimizeIcon.ScaleType = Enum.ScaleType.Fit
 MinimizeIcon.Parent = ScreenGui
 
