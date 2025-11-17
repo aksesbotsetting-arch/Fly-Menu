@@ -195,10 +195,10 @@ local function STEALTH_TELEPORT(targetPos)
     DisableNoClip()
     ShowNotification("🔒 NoClip: OFF", Color3.fromRGB(255, 140, 0))
     wait(0.3)
-    SmartPositionLock(targetPos, 5.0)
+    SmartPositionLock(targetPos, 1.0)
     
     spawn(function()
-        for i = 1, 50 do
+        for i = 1, 10 do
             wait(0.1)
             if PlayerIsMoving then break end
             if HumanoidRootPart then
@@ -324,38 +324,35 @@ Title.Font = Enum.Font.GothamBold
 Title.Parent = MainFrame
 
 -- Minimize Icon
-local MinimizeIcon = Instance.new("TextButton")
+local MinimizeIcon = Instance.new("ImageButton")
 MinimizeIcon.Name = "MinimizeIcon"
-MinimizeIcon.Size = UDim2.new(0, 55, 0, 55)
-MinimizeIcon.Position = UDim2.new(0, 10, 0.5, -27)
-MinimizeIcon.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
+MinimizeIcon.Size = UDim2.new(0, 50, 0, 50)
+MinimizeIcon.Position = UDim2.new(0, 10, 0, 10)
+MinimizeIcon.BackgroundTransparency = 1  -- Transparan (no background)
 MinimizeIcon.BorderSizePixel = 0
 MinimizeIcon.Active = true
 MinimizeIcon.Draggable = true
 MinimizeIcon.Visible = false
-MinimizeIcon.Text = "💀"
-MinimizeIcon.TextSize = 28
-MinimizeIcon.Font = Enum.Font.GothamBold
-MinimizeIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeIcon.Image = "rbxassetid://99377966043786"
+MinimizeIcon.ScaleType = Enum.ScaleType.Fit
 MinimizeIcon.Parent = ScreenGui
 
 local IconCorner = Instance.new("UICorner")
-IconCorner.CornerRadius = UDim.new(0, 12)
+IconCorner.CornerRadius = UDim.new(0, 10)
 IconCorner.Parent = MinimizeIcon
 
+-- Event tetap sama
 MinimizeIcon.MouseButton1Click:Connect(function()
     MainFrame.Visible = true
     MinimizeIcon.Visible = false
 end)
 
 MinimizeIcon.MouseEnter:Connect(function()
-    MinimizeIcon.BackgroundColor3 = Color3.fromRGB(130, 180, 255)
-    MinimizeIcon.Size = UDim2.new(0, 60, 0, 60)
+    MinimizeIcon.Size = UDim2.new(0, 55, 0, 55)
 end)
 
 MinimizeIcon.MouseLeave:Connect(function()
-    MinimizeIcon.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
-    MinimizeIcon.Size = UDim2.new(0, 55, 0, 55)
+    MinimizeIcon.Size = UDim2.new(0, 50, 0, 50)
 end)
 
 -- Close Button
@@ -377,7 +374,7 @@ CloseCorner.Parent = CloseButton
 CloseButton.MouseButton1Click:Connect(function()
     MainFrame.Visible = false
     MinimizeIcon.Visible = true
-    ShowNotification("🥷 Minimized - Features active!", Color3.fromRGB(255, 100, 0))
+    ShowNotification("⚡ Minimized - Features active!", Color3.fromRGB(255, 100, 0))
 end)
 
 CloseButton.MouseEnter:Connect(function()
@@ -693,7 +690,7 @@ local function CreateTeleportButton(index, position)
     local Button = Instance.new("TextButton")
     Button.Name = "TPSave" .. index
     Button.Size = UDim2.new(1, -8, 0, 45)
-    Button.BackgroundColor3 = Color3.fromRGB(50, 100, 150)
+    Button.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
     Button.BorderSizePixel = 0
     Button.AutoButtonColor = false
     Button.Text = ""
@@ -746,7 +743,7 @@ local function CreateTeleportButton(index, position)
             return
         end
         
-        ShowNotification("🥷 Teleporting to Save " .. index .. "...", Color3.fromRGB(255, 100, 0))
+        ShowNotification("⚡ Teleporting to Save " .. index .. "...", Color3.fromRGB(255, 100, 0))
         
         spawn(function()
             local success, msg = STEALTH_TELEPORT(position)
@@ -772,11 +769,11 @@ local function CreateTeleportButton(index, position)
     end)
     
     Button.MouseEnter:Connect(function()
-        Button.BackgroundColor3 = Color3.fromRGB(70, 130, 180)
+        Button.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
     end)
     
     Button.MouseLeave:Connect(function()
-        Button.BackgroundColor3 = Color3.fromRGB(50, 100, 150)
+        Button.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
     end)
     
     DeleteBtn.MouseEnter:Connect(function()
@@ -827,7 +824,7 @@ SetPosButton.MouseButton1Click:Connect(function()
     ShowNotification("📍 Position " .. #SavedPositions .. " saved!", Color3.fromRGB(0, 255, 0))
     
     wait(1)
-    SetPosButton.BackgroundColor3 = Color3.fromRGB(139, 0, 0)
+    SetPosButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 end)
 
 SetPosButton.MouseEnter:Connect(function()
@@ -837,7 +834,7 @@ SetPosButton.MouseEnter:Connect(function()
 end)
 
 SetPosButton.MouseLeave:Connect(function()
-    SetPosButton.BackgroundColor3 = Color3.fromRGB(139, 0, 0)
+    SetPosButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 end)
 
 SaveButton.MouseButton1Click:Connect(function()
@@ -849,7 +846,7 @@ SaveButton.MouseButton1Click:Connect(function()
     SaveButton.BackgroundColor3 = Color3.fromRGB(0, 155, 0)
     SaveToFile()
     wait(1)
-    SaveButton.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
+    SaveButton.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
 end)
 
 SaveButton.MouseEnter:Connect(function()
@@ -857,7 +854,7 @@ SaveButton.MouseEnter:Connect(function()
 end)
 
 SaveButton.MouseLeave:Connect(function()
-    SaveButton.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
+    SaveButton.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
 end)
 
 LoadButton.MouseButton1Click:Connect(function()
@@ -969,7 +966,7 @@ spawn(function()
             StatusText.Text = "⚡ Status: Teleporting..."
             StatusText.TextColor3 = Color3.fromRGB(255, 100, 0)
         elseif PositionLockConnection then
-            StatusText.Text = "🔐 Status: Locked (5s)"
+            StatusText.Text = "🔐 Status: Locked (1s)"
             StatusText.TextColor3 = Color3.fromRGB(255, 200, 0)
         elseif PlayerIsMoving then
             StatusText.Text = "🏃 Status: Moving"
